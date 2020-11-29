@@ -6,12 +6,7 @@ void LCD_Init(void)
 	RESET_LCD_RS;
 	RESET_LCD_E;
 
-	HAL_Delay(15);
-
-	LCD_SetDataPort(LCDC_FUNC|LCDC_FUNC8B);
-	HAL_Delay(5);
-	LCD_SetDataPort(LCDC_FUNC|LCDC_FUNC8B);
-	HAL_Delay(1);
+	HAL_Delay(20);
 
 	LCD_SetDataPort(LCDC_FUNC|LCDC_FUNC4B); //4-byte mode
 	HAL_Delay(1);
@@ -20,8 +15,6 @@ void LCD_Init(void)
 	LCD_WriteCmd(LCDC_ONOFF|LCDC_CURSOROFF); // Cursor off
 	LCD_WriteCmd(LCDC_ONOFF|LCDC_DISPLAYON); // LCD on
 	LCD_WriteCmd(LCDC_ENTRY|LCDC_ENTRYR); // Data entry right
-
-	LCD_Cls(); // Clear display
 }
 
 void LCD_String(char* str)
@@ -61,39 +54,23 @@ void LCD_WriteCmd(uint8_t cmd)
 
 static inline void LCD_SetDataPort(uint8_t data)
 {
-	if(data & (1<<0))
-		SET_LCD_D4;
-	else
-		RESET_LCD_D4;
+	if(data & (1<<0)) 	SET_LCD_D4;
+	else				RESET_LCD_D4;
 
-	if(data & (1<<1))
-		SET_LCD_D5;
-	else
-		RESET_LCD_D5;
+	if(data & (1<<1))	SET_LCD_D5;
+	else				RESET_LCD_D5;
 
-	if(data & (1<<2))
-		SET_LCD_D6;
-	else
-		RESET_LCD_D6;
+	if(data & (1<<2))	SET_LCD_D6;
+	else				RESET_LCD_D6;
 
-	if(data & (1<<3))
-		SET_LCD_D7;
-	else
-		RESET_LCD_D7;
-
+	if(data & (1<<3))	SET_LCD_D7;
+	else				RESET_LCD_D7;
 }
 
 void LCD_Locate(uint8_t x, uint8_t y)
 {
-	switch(y)
-	{
-		case 0:
-			y = LCD_LINE1;
-			break;
-		case 1:
-			y = LCD_LINE2;
-			break;
-	}
+	if(y == 1) 	y = LCD_LINE2;
+	else 		y = LCD_LINE1;
 
 	LCD_WriteCmd((0x80 + y + x));
 }

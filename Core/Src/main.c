@@ -99,8 +99,8 @@ int main(void)
   {
     /* USER CODE END WHILE */
 	  LCD_Cls();
-	  LCD_Locate(0,1);
-	  LCD_String("  Teest");
+	  LCD_Locate(5,1);
+	  LCD_String("Test");
 	  HAL_Delay(5000);
     /* USER CODE BEGIN 3 */
   }
