@@ -30,30 +30,15 @@ void LCD_String(char* str)
 {
 	char c;
 	while((c = *(str++)))
-		LCD_Char(c);
+	{
+		SET_LCD_RS;
+		LCD_WriteByte(c);
+	}
 }
 
 void LCD_Cls(void)
 {
 	LCD_WriteCmd(LCDC_CLS);
-}
-
-void LCD_Char(char c)
-{
-	LCD_WriteData(((c >= 0x80) && (c <= 0x87)) ? (c & 0x07) : c);
-}
-
-void LCD_WriteCmd(uint8_t cmd)
-{
-	RESET_LCD_RS;
-	LCD_WriteByte(cmd);
-	HAL_Delay(1); //<<--- wait for command processing
-}
-
-void LCD_WriteData(uint8_t data)
-{
-	SET_LCD_RS;
-	LCD_WriteByte(data);
 }
 
 void LCD_WriteByte(uint8_t data)
@@ -66,6 +51,13 @@ void LCD_WriteByte(uint8_t data)
 	LCD_SetDataPort(data);
 	RESET_LCD_E;
 
+	HAL_Delay(1);
+}
+
+void LCD_WriteCmd(uint8_t cmd)
+{
+	RESET_LCD_RS;
+	LCD_WriteByte(cmd);
 	HAL_Delay(1);
 }
 
