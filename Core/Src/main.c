@@ -32,6 +32,48 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define SET_LCD_E HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, GPIO_PIN_SET);
+#define RESET_LCD_E HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, GPIO_PIN_RESET);
+
+#define SET_LCD_RS HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET)
+#define RESET_LCD_RS HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET)
+
+#define LCD_LINE1 0x00		// adres 1 znaku 1 wiersza
+#define LCD_LINE2 0x40		// adres 1 znaku 2 wiersza
+#define LCD_X 16
+
+#define LCDC_FUNC					0x20
+#define LCDC_FUNC8B					0x10
+#define LCDC_FUNC4B					0x00
+#define LCDC_FUNC2L					0x08
+#define LCDC_FUNC1L					0x00
+#define LCDC_FUNC5x10				0x04
+#define LCDC_FUNC5x7				0x00
+
+#define LCDC_CLS					0x01
+#define LCDC_HOME					0x02
+#define LCDC_ENTRY					0x04
+#define LCDC_ENTRYR					0x02
+#define LCDC_ENTRYL					0x00
+#define LCDC_MOVE					0x01
+#define LCDC_ONOFF					0x08
+#define LCDC_DISPLAYON				0x04
+#define LCDC_CURSORON				0x02
+#define LCDC_CURSOROFF				0x00
+#define LCDC_BLINKON				0x01
+#define LCDC_SHIFT					0x10
+#define LCDC_SHIFTDISP				0x08
+#define LCDC_SHIFTR					0x04
+#define LCDC_SHIFTL					0x00
+#define LCDC_FUNC					0x20
+#define LCDC_FUNC8B					0x10
+#define LCDC_FUNC4B					0x00
+#define LCDC_FUNC2L					0x08
+#define LCDC_FUNC1L					0x00
+#define LCDC_FUNC5x10				0x04
+#define LCDC_FUNC5x7				0x00
+#define LCDC_SET_CGRAM				0x40
+#define LCDC_SET_DDRAM				0x80
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -51,12 +93,124 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
-
+void LCD_Init(void);
+void LCD_String(char* str);
+void LCD_Cls(void);
+void LCD_Char(char c);
+void LCD_WriteCmd(uint8_t cmd);
+void LCD_WriteData(uint8_t data);
+void LCD_WriteByte(uint8_t data);
+static inline void LCD_SetDataPort(uint8_t data);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void LCD_Init(void)
+{
+	RESET_LCD_RS;
+	RESET_LCD_E;
 
+	HAL_Delay(15);
+
+	LCD_SetDataPort(LCDC_FUNC|LCDC_FUNC8B);
+	HAL_Delay(5);
+	LCD_SetDataPort(LCDC_FUNC|LCDC_FUNC8B);
+	HAL_Delay(1);
+
+	LCD_SetDataPort(LCDC_FUNC|LCDC_FUNC4B); //4-byte mode
+	HAL_Delay(1);
+	LCD_WriteCmd(LCDC_FUNC|LCDC_FUNC4B|LCDC_FUNC2L|LCDC_FUNC5x7); // 4-bit, 2 lanes, 5x7 chars
+
+	LCD_WriteCmd(LCDC_ONOFF|LCDC_CURSOROFF); // Cursor off
+	LCD_WriteCmd(LCDC_ONOFF|LCDC_DISPLAYON); // LCD on
+	LCD_WriteCmd(LCDC_ENTRY|LCDC_ENTRYR); // Data entry right
+
+	LCD_Cls(); // Clear display
+}
+
+
+
+void LCD_String(char* str)
+{
+	char c;
+	while((c = *(str++)))
+		LCD_Char(c);
+}
+
+void LCD_Cls(void)
+{
+	LCD_WriteCmd(LCDC_CLS);
+}
+
+void LCD_Char(char c)
+{
+	LCD_WriteData(((c >= 0x80) && (c <= 0x87)) ? (c & 0x07) : c);
+}
+
+void LCD_WriteCmd(uint8_t cmd)
+{
+	RESET_LCD_RS;
+	LCD_WriteByte(cmd);
+	HAL_Delay(1); //<<--- wait for command processing
+}
+
+void LCD_WriteData(uint8_t data)
+{
+	SET_LCD_RS;
+	LCD_WriteByte(data);
+}
+
+void LCD_WriteByte(uint8_t data)
+{
+	SET_LCD_E;
+	LCD_SetDataPort(data >> 4);
+	RESET_LCD_E;
+
+	SET_LCD_E;
+	LCD_SetDataPort(data);
+	RESET_LCD_E;
+
+	HAL_Delay(1);
+}
+
+static inline void LCD_SetDataPort(uint8_t data)
+{
+	if(data & (1<<0))
+		HAL_GPIO_WritePin(LCD_D4_GPIO_Port, LCD_D4_Pin, GPIO_PIN_SET);
+	else
+		HAL_GPIO_WritePin(LCD_D4_GPIO_Port, LCD_D4_Pin, GPIO_PIN_RESET);
+
+	if(data & (1<<1))
+		HAL_GPIO_WritePin(LCD_D5_GPIO_Port, LCD_D5_Pin, GPIO_PIN_SET);
+	else
+		HAL_GPIO_WritePin(LCD_D5_GPIO_Port, LCD_D5_Pin, GPIO_PIN_RESET);
+
+	if(data & (1<<2))
+		HAL_GPIO_WritePin(LCD_D6_GPIO_Port, LCD_D6_Pin, GPIO_PIN_SET);
+	else
+		HAL_GPIO_WritePin(LCD_D6_GPIO_Port, LCD_D6_Pin, GPIO_PIN_RESET);
+
+	if(data & (1<<3))
+		HAL_GPIO_WritePin(LCD_D7_GPIO_Port, LCD_D7_Pin, GPIO_PIN_SET);
+	else
+		HAL_GPIO_WritePin(LCD_D7_GPIO_Port, LCD_D7_Pin, GPIO_PIN_RESET);
+
+}
+
+void LCD_Locate(uint8_t x, uint8_t y)
+{
+	switch(y)
+	{
+		case 0:
+			y = LCD_LINE1;
+			break;
+		case 1:
+			y = LCD_LINE2;
+			break;
+	}
+
+	LCD_WriteCmd((0x80 + y + x));
+}
 /* USER CODE END 0 */
 
 /**
@@ -89,7 +243,7 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-
+  LCD_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -97,7 +251,10 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+	  LCD_Cls();
+	  LCD_Locate(0,0);
+	  LCD_String("Test");
+	  HAL_Delay(5000);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
