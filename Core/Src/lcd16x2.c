@@ -24,8 +24,6 @@ void LCD_Init(void)
 	LCD_Cls(); // Clear display
 }
 
-
-
 void LCD_String(char* str)
 {
 	char c;
@@ -64,24 +62,24 @@ void LCD_WriteCmd(uint8_t cmd)
 static inline void LCD_SetDataPort(uint8_t data)
 {
 	if(data & (1<<0))
-		HAL_GPIO_WritePin(LCD_D4_GPIO_Port, LCD_D4_Pin, GPIO_PIN_SET);
+		SET_LCD_D4;
 	else
-		HAL_GPIO_WritePin(LCD_D4_GPIO_Port, LCD_D4_Pin, GPIO_PIN_RESET);
+		RESET_LCD_D4;
 
 	if(data & (1<<1))
-		HAL_GPIO_WritePin(LCD_D5_GPIO_Port, LCD_D5_Pin, GPIO_PIN_SET);
+		SET_LCD_D5;
 	else
-		HAL_GPIO_WritePin(LCD_D5_GPIO_Port, LCD_D5_Pin, GPIO_PIN_RESET);
+		RESET_LCD_D5;
 
 	if(data & (1<<2))
-		HAL_GPIO_WritePin(LCD_D6_GPIO_Port, LCD_D6_Pin, GPIO_PIN_SET);
+		SET_LCD_D6;
 	else
-		HAL_GPIO_WritePin(LCD_D6_GPIO_Port, LCD_D6_Pin, GPIO_PIN_RESET);
+		RESET_LCD_D6;
 
 	if(data & (1<<3))
-		HAL_GPIO_WritePin(LCD_D7_GPIO_Port, LCD_D7_Pin, GPIO_PIN_SET);
+		SET_LCD_D7;
 	else
-		HAL_GPIO_WritePin(LCD_D7_GPIO_Port, LCD_D7_Pin, GPIO_PIN_RESET);
+		RESET_LCD_D7;
 
 }
 
