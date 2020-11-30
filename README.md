@@ -1,6 +1,6 @@
-# stm32_bluepill_template
+# stm32_bluepill_lcd16x2
 
-...
+Driver for HD44780 Compatible LCD Display with 16 digits and 2 rows.
 
 Created in STM32CubeIDE for STM32 "Blue Pill" HW-267 based on STM32F103CBT6 MCU. 
 
